@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, Numeric, TIMESTAMP, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 Base = declarative_base()
 
@@ -40,6 +42,22 @@ class SensorReadingRaw(Base):
     potassium_ppm = Column(Numeric(10,2))
     soil_humidity_pct = Column(Numeric(5,2))
     soil_ph = Column(Numeric(4,2))
+
+    is_valid = Column(Boolean, default=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+class NutrientTankReading(Base):
+    __tablename__ = "nutrient_tank_reading"
+    __table_args__ = {"schema": "raw"}
+
+    reading_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(Integer)
+
+    measured_at = Column(TIMESTAMP(timezone=True), nullable=False)
+
+    distance_cm = Column(Numeric(5,2))
+    calculated_volume_ml = Column(Integer)
+    tank_capacity_ml = Column(Integer)
 
     is_valid = Column(Boolean, default=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())

@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from app.db import engine
-from app.models import Plant, Device, SensorReadingRaw
-from app.schemas import SensorPayload
+from app.models import NutrientTankReading, Plant, Device, SensorReadingRaw
+from app.schemas import NutrientTankPayload, SensorPayload
 
 app = FastAPI(title="IoT Salak Sensor API")
 
@@ -55,6 +55,45 @@ def ingest_sensor(payload: SensorPayload):
             potassium_ppm=payload.sensor.potassium_ppm,
             soil_humidity_pct=payload.sensor.soil_humidity_pct,
             soil_ph=payload.sensor.soil_ph,
+
+            is_valid=is_valid
+        )
+
+        session.add(reading)
+        session.commit()
+
+    return {
+        "status": "ok",
+        "is_valid": is_valid,
+        "server_time": datetime.now(timezone.utc).isoformat()
+    }
+
+@app.post("/api/v1/nutrient-tank-reading")
+def ingest_nutrient_tank(payload: NutrientTankPayload):
+    with Session(engine) as session:
+
+        device = session.query(Device).filter_by(
+            device_code=payload.device_id
+        ).first()
+
+        if not device:
+            raise HTTPException(404, "Device not found")
+
+        measured_at = get_utc_time(payload.measured_at_epoch)
+
+        # Contoh rule validasi sederhana
+        is_valid = (
+            payload.tank.distance_cm >= 0 and
+            payload.tank.calculated_volume_ml >= 0
+        )
+
+        reading = NutrientTankReading(
+            device_id=device.device_id,
+            measured_at=measured_at,
+
+            distance_cm=payload.tank.distance_cm,
+            calculated_volume_ml=payload.tank.calculated_volume_ml,
+            tank_capacity_ml=payload.tank.tank_capacity_ml,
 
             is_valid=is_valid
         )

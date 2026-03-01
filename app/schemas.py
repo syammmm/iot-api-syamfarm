@@ -18,3 +18,14 @@ class SensorPayload(BaseModel):
     plant_code: str
     recorded_at_epoch: Optional[int]
     sensor: SensorData
+
+class NutrientTankData(BaseModel):
+    distance_cm: float
+    calculated_volume_ml: int
+    tank_capacity_ml: int
+
+
+class NutrientTankPayload(BaseModel):
+    device_id: str
+    measured_at_epoch: Optional[int]
+    tank: NutrientTankData
