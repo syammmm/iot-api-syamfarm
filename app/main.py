@@ -67,3 +67,12 @@ def ingest_sensor(payload: SensorPayload):
         "is_valid": is_valid,
         "server_time": datetime.now(timezone.utc).isoformat()
     }
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",   # path ke FastAPI object
+        host="0.0.0.0",   # WAJIB agar bisa diakses device lain
+        port=8000,
+        reload=True       # opsional, untuk development
+    )
